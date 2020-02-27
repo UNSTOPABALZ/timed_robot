@@ -9,11 +9,11 @@ package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
+import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 //import edu.wpi.first.wpilibj.buttons.Button;
@@ -26,7 +26,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
  * directory.
  */
 public class Robot extends TimedRobot {
-    SpeedController m_frontLeft = new PWMVictorSPX(0);
+    /*SpeedController m_frontLeft = new PWMVictorSPX(0);
     SpeedController m_rearLeft = new PWMVictorSPX(1);
     SpeedControllerGroup m_left = new SpeedControllerGroup(m_frontLeft, m_rearLeft);
     
@@ -35,14 +35,22 @@ public class Robot extends TimedRobot {
     SpeedController m_rearRight = new PWMVictorSPX(3);
     SpeedControllerGroup m_right = new SpeedControllerGroup(m_frontRight, m_rearRight);
  
-    DifferentialDrive m_robotDrive = new DifferentialDrive(m_left, m_right);
-    
-    private final Joystick m_ps4 = new Joystick(0);
-    private final XboxController m_xbox = new XboxController(1);
-    private final Timer m_timer = new Timer();
+    DifferentialDrive m_robotDrive = new DifferentialDrive(m_left, m_right);*/
+
+    Spark frontLeft = new Spark(0);
+    Spark rearLeft = new Spark(1);
+    Spark frontRight = new Spark(2);
+    Spark rearRight = new Spark(3);
+    Spark leftSuck = new Spark(4);
+    Spark rightBlow = new Spark(5);
    
-
-
+    SpeedControllerGroup left = new SpeedControllerGroup(frontLeft, rearLeft); 
+    SpeedControllerGroup right = new SpeedControllerGroup(frontRight, rearRight);
+    DifferentialDrive robotDrive = new DifferentialDrive(left, right);
+    
+    private final Joystick ps4 = new Joystick(0);
+    private final Timer timer = new Timer();
+   
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -56,8 +64,8 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    m_timer.reset();
-    m_timer.start();
+    timer.reset();
+    timer.start();
   }
 
   /**
@@ -66,10 +74,10 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     // Drive for 2 seconds
-    if (m_timer.get() < 2.0) {
-      m_robotDrive.arcadeDrive(-0.5, 0.0); // drive forwards half speed
+    if (timer.get() < 2.0) {
+      robotDrive.arcadeDrive(-0.5, 0.0); // drive forwards half speed
     } else {
-      m_robotDrive.stopMotor(); // stop robot
+      robotDrive.stopMotor(); // stop robot
     }
   }
 
@@ -89,19 +97,30 @@ public class Robot extends TimedRobot {
     double move_sensitivity = 0.5;
     double rotate_sensitivity = 0.70;
 
-    if (m_ps4.getRawButton(1) == true)
+    if (ps4.getRawButton(1))
     {
       rotate_sensitivity = 1.0;
     }
-    if (m_ps4.getRawButton(1) == false)
+    if (ps4.getRawButton(1))
     {
       rotate_sensitivity = 0.70;
     }
-    double xbox_move = (m_xbox.getTriggerAxis(Hand.kLeft) - m_xbox.getTriggerAxis(Hand.kRight)) * move_sensitivity;
-    double xbox_rotate = m_xbox.getX(Hand.kLeft) * rotate_sensitivity;
-    double ps4_move = (m_ps4.getRawAxis(3) - m_ps4.getRawAxis(4)) * move_sensitivity;
-    double ps4_rotate = m_ps4.getX(Hand.kLeft) * rotate_sensitivity; 
-    m_robotDrive.arcadeDrive(xbox_move + ps4_move, xbox_rotate + ps4_rotate);
+
+    if (ps4.getRawButton(5)) {
+      leftSuck.set(1);
+    } else {
+      leftSuck.stopMotor();
+    }
+
+    if (ps4.getRawButton(6)) {
+      rightBlow.set(-1);
+    } else { 
+      rightBlow.stopMotor();
+    }
+
+    double ps4_move = (ps4.getRawAxis(3) - ps4.getRawAxis(4)) * move_sensitivity;
+    double ps4_rotate = ps4.getX(Hand.kLeft) * rotate_sensitivity; 
+    robotDrive.arcadeDrive(ps4_move, ps4_rotate);
   }
 
   /**
