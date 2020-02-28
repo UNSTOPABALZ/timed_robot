@@ -8,15 +8,16 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.PWMVictorSPX;
-import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-//import edu.wpi.first.wpilibj.buttons.Button;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -37,20 +38,24 @@ public class Robot extends TimedRobot {
  
     DifferentialDrive m_robotDrive = new DifferentialDrive(m_left, m_right);*/
 
-    Spark frontLeft = new Spark(0);
-    Spark rearLeft = new Spark(1);
-    Spark frontRight = new Spark(2);
-    Spark rearRight = new Spark(3);
-    Spark leftSuck = new Spark(4);
-    Spark rightBlow = new Spark(5);
+    CANSparkMax frontLeft = new CANSparkMax(0, MotorType.kBrushless);
+    CANSparkMax rearLeft = new CANSparkMax(1, MotorType.kBrushless);
+    CANSparkMax frontRight = new CANSparkMax(2, MotorType.kBrushless);
+    CANSparkMax rearRight = new CANSparkMax(3, MotorType.kBrushless);
+    CANSparkMax leftSuck = new CANSparkMax(4, MotorType.kBrushless);
+    CANSparkMax rightBlow = new CANSparkMax(5, MotorType.kBrushless);
    
     SpeedControllerGroup left = new SpeedControllerGroup(frontLeft, rearLeft); 
     SpeedControllerGroup right = new SpeedControllerGroup(frontRight, rearRight);
     DifferentialDrive robotDrive = new DifferentialDrive(left, right);
     
     private final Joystick ps4 = new Joystick(0);
+    public JoystickButton left;
+    public JoystickButton right;
     private final Timer timer = new Timer();
-   
+
+    
+
   /**
    * This function is run when the robot is first started up and should be
    * used for any initialization code.
@@ -95,18 +100,15 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
 
     double move_sensitivity = 0.5;
-    double rotate_sensitivity = 0.70;
+    double rotate_sensitivity = 1.0;
 
-    if (ps4.getRawButton(1))
-    {
-      rotate_sensitivity = 1.0;
     }
     if (ps4.getRawButton(1))
     {
       rotate_sensitivity = 0.70;
     }
 
-    if (ps4.getRawButton(5)) {
+    /*if (ps4.getRawButton(5)) {
       leftSuck.set(1);
     } else {
       leftSuck.stopMotor();
@@ -116,7 +118,14 @@ public class Robot extends TimedRobot {
       rightBlow.set(-1);
     } else { 
       rightBlow.stopMotor();
-    }
+    }*/
+
+    left = new JoystickButton(ps4, 5);
+    left.whileHeld(new SetLeftSpeed(-1));
+
+    right = new JoystickButton(ps4, 6);
+    right.whileHeld(new SetRightSpeed(1));
+
 
     double ps4_move = (ps4.getRawAxis(3) - ps4.getRawAxis(4)) * move_sensitivity;
     double ps4_rotate = ps4.getX(Hand.kLeft) * rotate_sensitivity; 
